@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: edge-config, namespace: cloudshop}
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      location /api/ {
+        proxy_pass http://api:8080;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 5s;
+        proxy_set_header X-Request-ID $http_x_request_id;
+      }
+      location / {
+        proxy_pass http://web:8080;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: edge, namespace: cloudshop}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: edge}
+  template:
+    metadata:
+      labels: {app: edge}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: edge
+          image: nginx:1.27.4-alpine
+          ports: [{containerPort: 8080}]
+          resources:
+            requests: {cpu: 50m, memory: 32Mi}
+            limits: {cpu: 300m, memory: 128Mi}
+          readinessProbe:
+            tcpSocket: {port: 8080}
+          volumeMounts:
+            - {name: config, mountPath: /etc/nginx/conf.d, readOnly: true}
+      volumes:
+        - name: config
+          configMap: {name: edge-config}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: edge, namespace: cloudshop}
+spec:
+  selector: {app: edge}
+  ports: [{port: 8080, targetPort: 8080}]

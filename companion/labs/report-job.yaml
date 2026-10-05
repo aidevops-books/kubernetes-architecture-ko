@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: order-report, namespace: cloudshop}
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels: {app: report}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: report
+          image: postgres:16.8-alpine
+          command: [psql, -h, postgres, -U, cloudshop, -d, cloudshop, -v, ON_ERROR_STOP=1, -c, 'SELECT count(*) AS orders FROM orders;']
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef: {name: db-credentials, key: DB_PASSWORD}
+          resources:
+            requests: {cpu: 50m, memory: 32Mi}
+            limits: {cpu: 200m, memory: 128Mi}

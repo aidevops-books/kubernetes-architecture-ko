@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata: {name: pending-demo, namespace: cloudshop}
+spec:
+  automountServiceAccountToken: false
+  nodeSelector: {book.example/unavailable: 'true'}
+  containers:
+    - name: demo
+      image: cloudshop-web:0.1.0
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests: {cpu: 10m, memory: 32Mi}

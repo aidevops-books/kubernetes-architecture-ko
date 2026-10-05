@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  namespace: cloudshop
+  labels: {app: client}
+spec:
+  automountServiceAccountToken: false
+  containers:
+    - name: client
+      image: python:3.12.10-slim
+      command: [python, -c, 'import time; time.sleep(86400)']
+      resources:
+        requests: {cpu: 10m, memory: 16Mi}
+        limits: {cpu: 100m, memory: 64Mi}
