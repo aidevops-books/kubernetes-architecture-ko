@@ -1,0 +1,8 @@
+# Store text as LF and check it out as LF on every platform: shell scripts, Dockerfiles and
+# files copied into containers break when Windows checks them out with CRLF.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.zip binary
+*.tar binary
